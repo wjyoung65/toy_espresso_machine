@@ -9,10 +9,10 @@ target_temp = 90
 
 arduino_pin = pin0
 
-WATER_SIGNAL = 256
-STEAM_SIGNAL = 512
-COFFEE_SIGNAL = 768
-
+WATER_SIGNAL = 512
+STEAM_SIGNAL = 768
+COFFEE_SIGNAL = 1023
+RESET_SIGNAL = 0
 
 @run_every(s=5)
 def reduce_temp():
@@ -90,6 +90,7 @@ def animate_coffee(step=200):
                        '96669:'
                        '99999'))
     audio.play(Sound.GIGGLE)
+    arduino_pin.write_analog(RESET_SIGNAL)
 
 def animate(frames, step=200):
     for i in range(0, len(frames)):
@@ -146,6 +147,7 @@ def animate_steam(step=200):
                     '50505:'
                     '05050')]
     animate_while_button_pressed(frames, step)
+    reset_displays()
 
 def clear_7seg():
     try:
@@ -164,6 +166,8 @@ def reset_displays():
                        '00900:'
                        '00000:'
                        '00000'))
+    arduino_pin.set_pull(arduino_pin.PULL_UP)
+    arduino_pin.write_analog(0)
     clear_7seg()
 
 def display_7seg(s):
@@ -175,7 +179,6 @@ def display_7seg(s):
 
 def animate_water(step=200):
     global temperature
-    arduino_pin.write_analog(COFFEE_SIGNAL)
     reset_displays()
     try:
         uart.init(tx=pin2)
@@ -185,11 +188,13 @@ def animate_water(step=200):
             uart.write(' ')
             uart.write('%3dC,' % i)
             sleep(step)
-        animate_fill()
+        arduino_pin.write_analog(WATER_SIGNAL)
+        animate_fill(500)
     finally:
         uart.init(baudrate=115200)
+        arduino_pin.write_analog(RESET_SIGNAL)
 
-def animate_fill():
+def animate_fill(step=100):
     animate([Image("00009:"
                    "00000:"
                    "90009:"
@@ -224,7 +229,7 @@ def animate_fill():
                    "00000:"
                    "90009:"
                    "99999:"
-                   "99999")])
+                   "99999")], step)
 
 reset_displays()
 display_7seg('%3dC,' % temperature)
