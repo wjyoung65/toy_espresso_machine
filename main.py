@@ -3,6 +3,8 @@ import music
 import random
 import log
 
+DEBOUNCE_THRESHOLD = 6
+
 # Uses buttons from micro:bit basic kit and
 room_temp = 21
 temperature = room_temp
@@ -249,10 +251,6 @@ def animate_fill(step=100):
 reset_displays()
 display_7seg('%3dC,' % temperature)
 
-state = None
-stable_state = None
-debounce_count = 0
-DEBOUNCE_THRESHOLD = 3
 
 def read_debounced_pin(pin=pin1):
     debounce_count = 0
