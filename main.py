@@ -55,6 +55,7 @@ def animate_grind(step=200):
 def animate_water(step=200):
     global temperature
     reset_displays()
+    send_pulse(END_PULSE)
     try:
         uart.init(tx=pin2)
         uart.write('%3dC,' % temperature)
@@ -62,6 +63,9 @@ def animate_water(step=200):
             temperature = i
             uart.write(' ')
             uart.write('%3dC,' % i)
+            stable_state = read_debounced_pin(pin1)
+            if stable_state != 'waiting' and stable_state != 'water':
+                break
             sleep(step)
         send_pulse(WATER_PULSE)
         animate_fill(500)
@@ -72,13 +76,14 @@ def animate_water(step=200):
 def animate_milk():
     reset_displays()
     send_pulse(MILK_PULSE)
-    animate_fill()
+    animate_fill(500)
     send_pulse(END_PULSE)
 
 def send_pulse(duration_ms, pin=arduino_pin):
     pin.write_digital(1)
     sleep(duration_ms)
     pin.write_digital(0)
+    sleep(50)
 
 def animate_coffee(step=400):
     reset_displays()
@@ -249,31 +254,37 @@ stable_state = None
 debounce_count = 0
 DEBOUNCE_THRESHOLD = 3
 
-while True:
-    x = pin1.read_analog()
+def read_debounced_pin(pin=pin1):
+    debounce_count = 0
+    stable_state = None
+    state = None
+    while True:
+        x = pin.read_analog()
+        if x < 10: # A
+            state = 'grind'
+        elif x < 80: # B
+            state = 'water'
+        elif x < 130: # C - milk
+            state = 'milk'
+        elif x < 160: # D
+            state = 'steam'
+        elif x < 600: # E
+            state = 'coffee'
+        else:
+            state = 'waiting'
 
-    if x < 10: # A
-        state = 'grind'
-    elif x < 80: # B
-        state = 'water'
-    elif x < 130: # C - milk
-        state = 'milk'
-    elif x < 160: # D
-        state = 'steam'
-    elif x < 600: # E
-        state = 'coffee'
-    else:
-        state = 'waiting'
-
-    if state == stable_state:
-        debounce_count = 0
-    else:
-        debounce_count += 1
-        if debounce_count >= DEBOUNCE_THRESHOLD:
-            stable_state = state
+        if state == stable_state:
             debounce_count = 0
-            if stable_state == 'grind': animate_grind()
-            elif stable_state == 'water': animate_water()
-            elif stable_state == 'milk': animate_milk()
-            elif stable_state == 'steam': animate_steam()
-            elif stable_state == 'coffee': animate_coffee()
+        else:
+            debounce_count += 1
+            if debounce_count >= DEBOUNCE_THRESHOLD:
+                return state
+
+
+while True:
+    stable_state = read_debounced_pin(pin1)
+    if stable_state == 'grind': animate_grind()
+    elif stable_state == 'water': animate_water()
+    elif stable_state == 'milk': animate_milk()
+    elif stable_state == 'steam': animate_steam()
+    elif stable_state == 'coffee': animate_coffee()
