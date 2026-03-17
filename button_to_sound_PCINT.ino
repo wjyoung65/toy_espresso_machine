@@ -155,9 +155,9 @@ void loop() {
   if (captured < 75000)
     playsound("grinding.wav");  // 50ms = grind start
   else if (captured < 125000)
-    playsound("1.wav");         // 100ms = water ready
+    playsound("water.wav");         // 100ms = water ready
   else if (captured < 175000)
-    playsound("2.wav");         // 150ms = milk start
+    playsound("milk.wav");         // 150ms = milk start
   else if (captured < 225000)
     playsound("bubbles.wav");   // 200ms = steam start
   else if (captured < 275000)
