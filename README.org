@@ -14,6 +14,8 @@ The micro:bit is responsible for handling button input, driving the 7-segment di
 
 Sound files are too large to put on the micro:bit, and the onboard speaker is too tinny for the kinds of sounds the kiddo wanted the device to make. We used the Arduino Uno to play the WAV files because we had one lying around from a previous project and she didn't want to wait for an MP3 module.
 
+We considered moving everything to the Arduino, but the kiddo liked her 5x5 animations. We didn't have a similar 5x5 LED display outside the micro:bit and we didn't want to go through the trouble of setting up communication from the Arduino to the micro:bit (higher voltage to lower).
+
 * The process we eventually settled on
 
 ** micro:bit
@@ -31,15 +33,18 @@ Sound files are too large to put on the micro:bit, and the onboard speaker is to
 - Deployment goes faster when you automatically mount devices instead of having to click on them. In Kubuntu, you can configure that by opening the *Removable Devices* settings dialog and checking "On Attach" for all known devices or for the specific device you want.
 - The ElecFreaks buttons needed to be debounced.
 - The micro:bit doesn't send out a true analog signal when you use =write_analog=. Instead, it uses pulse-width modulation (PWM), which we had a hard time figuring out how to reliably read on the Arduino side. This might be also partly because of the differences between voltage levels (3.3V for the micro:bit, 5V for the Arduino). We tried using a capacitor and a resistor to get an average voltage level as an analog signal into the Arduino. We eventually settled on using pulse duration instead. 50ms differences between pulse duration was reliably detectable.
+- It turns out that the micro:bit has a number of [[https://makecode.microbit.org/v0/device/pins][assignable GPIO pins]] in addition to the 3 large IO rings, so we didn't need to squeeze the Arduino connection into a single pin, and we can add other components if we want to.
 - Since the communication between the micro:bit to the Arduino was one way, we didn't need a voltage level shifter to protect the micro:bit from the higher voltage used by the Arduino.
 - micropython expects the entry point of the program to be named =main.py=.
 - You can connect to the micro:bit via USB with =sudo screen /dev/ttyACM0 115200= (check =dmesg= to see what port to use) and see error messages or =print(..)= output instead of waiting for the error message to scroll one letter at a time. Quit with =Ctrl+a k=.
 - Magnetically attaching the control panel made it easy to take off and put back on.
-- It was helpful to be able to ask Claude AI to debug things or suggest what to do.
+- It was helpful to be able to ask Claude AI to debug things or suggest what to do, especially when the kiddo was impatient and wanted snuggles.
+- A power bank with two USB output ports can power both devices.
 
 * Next steps?
 
 - Add pictures, schematics
+- Use the actual temperature as a starting point, since the micro:bit can sense the temperature of its CPU. Range: [[https://tech.microbit.org/hardware/#temperature-sensing][-40C to 105C]]
 - Add some kind of magnetized group head
 - The kid is going to forget to turn it off, even with an always-on LED. Might be good to have some kind of sleep mode or way to cut power, or just manually remember to check it ourselves.
 
