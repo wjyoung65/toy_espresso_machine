@@ -1,0 +1,48 @@
+Toy espresso machine powered by micro:bit and Arduino Uno
+
+Motivation: Our 10-year-old wanted a toy espresso machine so that she could make pretend coffee for us. We built one out of cardboard, wood, and a few electronics parts that we had lying around.
+
+Components used:
+
+- [[https://microbit.org/new-microbit/][micro:bit v2]] ([[https://tech.microbit.org/][technical resources]])
+- [[https://wiki.elecfreaks.com/en/microbit/getting-started/microbit-basic-kit/basic_kit/][ElecFreaks basic micro:bit kit]] for the panel with 5 buttons
+- [[https://monkmakes.com/mb_7_seg][MonkMakes 7-segment display for micro:bit]]
+- [[https://en.wikipedia.org/wiki/Arduino_Uno][Arduino Uno]]
+- speaker
+
+The micro:bit is responsible for handling button input, driving the 7-segment display, and communicating with the Arduino Uno, which is responsible for playing sounds.
+
+Sound files are too large to put on the micro:bit, and the onboard speaker is too tinny for the kinds of sounds the kiddo wanted the device to make. We used the Arduino Uno to play the WAV files because we had one lying around from a previous project and she didn't want to wait for an MP3 module.
+
+* The process we eventually settled on
+
+** micro:bit
+
+1. Install [[https://learn.adafruit.com/micropython-basics-load-files-and-run-code/install-ampy][Ampy]] with =pipx install adafruit-ampy= so that you can more easily transfer .py files to micropython on the micro:bit.
+1. Flash the [[https://github.com/bbcmicrobit/micropython/releases/tag/v1.1.1][hex file]] for micropython by mounting the micro:bit as a drive and dragging and dropping the hex file to the directory, or by using =dd=. =cp= doesn't reliably work for copying hex files to the mounted directory; the transfer times out. Instead, use a command like
+   #+begin_src sh :eval no
+   dd if=/path/to/your.hex of=/media/your-username/MICROBIT/image.hex bs=4k conv=fsync
+   #+end_src
+2. Use =ampy -p /dev/ttyACM0 put main.py= to transfer the main.py. After the transfer is complete, press the reset button on the back of the micro:bit to restart it with your program.
+
+* Lessons learned
+
+- Bluetooth pairing with the micro:bit was unreliable. It was better to connect via USB.
+- Deployment goes faster when you automatically mount devices instead of having to click on them. In Kubuntu, you can configure that by opening the *Removable Devices* settings dialog and checking "On Attach" for all known devices or for the specific device you want.
+- The ElecFreaks buttons needed to be debounced.
+- The micro:bit doesn't send out a true analog signal when you use =write_analog=. Instead, it uses pulse-width modulation (PWM), which we had a hard time figuring out how to reliably read on the Arduino side. This might be also partly because of the differences between voltage levels (3.3V for the micro:bit, 5V for the Arduino). We tried using a capacitor and a resistor to get an average voltage level as an analog signal into the Arduino. We eventually settled on using pulse duration instead. 50ms differences between pulse duration was reliably detectable.
+- Since the communication between the micro:bit to the Arduino was one way, we didn't need a voltage level shifter to protect the micro:bit from the higher voltage used by the Arduino.
+- micropython expects the entry point of the program to be named =main.py=.
+- You can connect to the micro:bit via USB with =sudo screen /dev/ttyACM0 115200= (check =dmesg= to see what port to use) and see error messages or =print(..)= output instead of waiting for the error message to scroll one letter at a time. Quit with =Ctrl+a k=.
+- Magnetically attaching the control panel made it easy to take off and put back on.
+- It was helpful to be able to ask Claude AI to debug things or suggest what to do.
+
+* Next steps?
+
+- Add pictures, schematics
+- Add some kind of magnetized group head
+- The kid is going to forget to turn it off, even with an always-on LED. Might be good to have some kind of sleep mode or way to cut power, or just manually remember to check it ourselves.
+
+* Questions? Improvements?
+
+[[mailto:sacha@sachachua.com][sacha@sachachua.com]]
