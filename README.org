@@ -8,6 +8,7 @@ Components used:
 - [[https://wiki.elecfreaks.com/en/microbit/getting-started/microbit-basic-kit/basic_kit/][ElecFreaks basic micro:bit kit]] for the panel with 5 buttons
 - [[https://monkmakes.com/mb_7_seg][MonkMakes 7-segment display for micro:bit]]
 - [[https://en.wikipedia.org/wiki/Arduino_Uno][Arduino Uno]]
+- [[https://www.adafruit.com/product/94?srsltid=AfmBOoreMZRo-hDvyolyETdrbkOJ_gfz2r6WN0DbXO6ciIS7QO80a5DE][Adafruit Wave Shield]]
 - speaker
 
 The micro:bit is responsible for handling button input, driving the 7-segment display, and communicating with the Arduino Uno, which is responsible for playing sounds.
@@ -21,11 +22,17 @@ We considered moving everything to the Arduino, but the kiddo liked her 5x5 anim
 ** micro:bit
 
 1. Install [[https://learn.adafruit.com/micropython-basics-load-files-and-run-code/install-ampy][Ampy]] with =pipx install adafruit-ampy= so that you can more easily transfer .py files to micropython on the micro:bit.
-1. Flash the [[https://github.com/bbcmicrobit/micropython/releases/tag/v1.1.1][hex file]] for micropython by mounting the micro:bit as a drive and dragging and dropping the hex file to the directory, or by using =dd=. =cp= doesn't reliably work for copying hex files to the mounted directory; the transfer times out. Instead, use a command like
+2. Flash the [[https://github.com/bbcmicrobit/micropython/releases/tag/v1.1.1][hex file]] for micropython by mounting the micro:bit as a drive and dragging and dropping the hex file to the directory, or by using =dd=. =cp= doesn't reliably work for copying hex files to the mounted directory; the transfer times out. Instead, use a command like
    #+begin_src sh :eval no
    dd if=/path/to/your.hex of=/media/your-username/MICROBIT/image.hex bs=4k conv=fsync
    #+end_src
-2. Use =ampy -p /dev/ttyACM0 put main.py= to transfer the main.py. After the transfer is complete, press the reset button on the back of the micro:bit to restart it with your program.
+3. Use =ampy -p /dev/ttyACM0 put main.py= to transfer the main.py. After the transfer is complete, press the reset button on the back of the micro:bit to restart it with your program.
+
+** Arduino and Wave Shield
+
+1. Install the Waveshield libraries and create a sketch to play sounds. Their library includes a program to recite the first several digits of pi, it is a handy way to verify the shield works.
+2. Modify the sketch to play a wav file when a button is pushed.
+3. Modify the sketch to respond to signals from the micro:bit.
 
 * Lessons learned
 
