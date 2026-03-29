@@ -55,6 +55,82 @@ We considered moving everything to the Arduino, but the kiddo liked her 5x5 anim
 - Add some kind of magnetized group head
 - The kid is going to forget to turn it off, even with an always-on LED. Might be good to have some kind of sleep mode or way to cut power, or just manually remember to check it ourselves.
 
+* Powering the micro:bit without the USB connector
+
+The micro:bit's USB connector sticks out too far when the toy is in play mode. Alternatives:
+
+- **JST battery connector**: The micro:bit v2 has a JST connector designed for a 3.7V LiPo battery. Feeding 5V into it may damage the board (too high); feeding 3.3V regulated power into it may not work reliably because the onboard regulator needs headroom above 3.3V to function.
+- **Edge connector 3V and GND pins**: The micro:bit edge connector exposes a 3V pin and GND that accept regulated 3.3V directly, bypassing the onboard regulator. A JST connector with 20cm cable wired to these pins works cleanly with a DC-DC buck converter such as the AMS1117 3.3V (4.75V–12V input, 3.3V/800mA output). See [[https://tech.microbit.org/hardware/edgeconnector/][micro:bit edge connector pinout]].
+- **90-degree USB adapter**: If the cable clearance is the only issue, a 90-degree USB adapter may solve it without any additional hardware.
+
+The edge connector route is the cleanest: power the buck converter from the same 5V USB power bank, and run 3.3V from the buck converter to the edge connector 3V and GND pins via a 2-pin JST connector.
+
+* Schematics (planned DFPlayer Mini upgrade)
+
+** Power Rails
+
+#+begin_example
+  +------------------+
+  |  USB Power Bank  |
+  |       5V         |
+  +--------+---------+
+           |
+           +------------ 5V rail --------+-------------------+
+           |                             |                   |
+     +-----+----------+           +------+------+  +---------+-------+
+     | Mini DC-DC     |           | Level       |  | DFPlayer Mini   |
+     | Buck Converter |           | Shifter     |  | VCC         GND +--+
+     | IN=5V  OUT=3.3V|           | HV = 5V     |  +-----------------+  |
+     +-----+----------+           +------+------+                       |
+           |                             |                              |
+           +------------ 3.3V rail ------+ LV = 3.3V                   |
+           |                             |                              |
+     +-----+-------+              +------+------+                      |
+     | micro:bit   |              | Level       |                      |
+     | 3V pin      |              | Shifter     |                      |
+     | (via JST to |              | LV = 3.3V   |                      |
+     |  edge conn) |              +-------------+                      |
+     +-------------+                                                   |
+           |                                                           |
+           +--- 3V also powers ElecFreaks panel and 7-seg (edge conn) |
+                                                                       |
+  GND (common to all devices) <-----------------------------------------+
+
+  Note: buck converter module has decoupling caps integrated on PCB.
+  Set output voltage jumpers [A] and [B] on buck converter for 3.3V.
+#+end_example
+
+** Signal Connections
+
+#+begin_example
+                  +--------------------------+
+  ElecFreaks      |       micro:bit v2       |      MonkMakes
+  5-button panel  |                          |      7-segment display
+  (resistor       |                          |      (UART, 3.3V)
+   ladder)        |                          |
+                  |                          |
+  button out ---> pin1 (ADC)                 |
+  VCC <--------- 3V                          |
+  GND <--------- GND   pin2 (UART TX) ------+-----------> RX
+                  |                          |
+                  |    pin0 (UART TX) -------+---> Level Shifter --> DFPlayer RX
+                  |                          |     LV ch1 (3.3V)    HV ch1 (5V)
+                  +--------------------------+
+
+  DFPlayer Mini outputs:
+    SPK+ ----> Speaker +
+    SPK- ----> Speaker -
+
+  Note: The 5 buttons share a single ADC pin via a resistor ladder.
+  Each button produces a distinct voltage (A~0V, B~0.25V, C~0.40V,
+  D~0.50V, E~1.9V, none~3.3V) read by pin1 on the micro:bit.
+#+end_example
+
+* Resources
+
+- [[https://tech.microbit.org/hardware/edgeconnector/][micro:bit edge connector pinout]]
+- [[https://tech.microbit.org/hardware/powersupply/][micro:bit power supply reference]]
+
 * Questions? Improvements?
 
 [[mailto:sacha@sachachua.com][sacha@sachachua.com]]
